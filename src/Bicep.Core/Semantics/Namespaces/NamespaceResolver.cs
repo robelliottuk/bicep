@@ -93,10 +93,14 @@ namespace Bicep.Core.Semantics.Namespaces
         public IEnumerable<string> GetNamespaceNames()
             => this.namespaceTypes.Keys;
 
-        public ResourceType GetResourceType(ResourceTypeReference reference, ResourceTypeGenerationFlags flags)
+        public NamespaceType? TryGetNamespace(string name)
+            => this.namespaceTypes.TryGetValue(name);
+
+        public ResourceType? TryGetResourceType(string resourceTypeName, ResourceTypeGenerationFlags flags)
         {
+            // TODO should we return an array of matching types here?
             var definedTypes = namespaceTypes.Values
-                .Select(type => type.ResourceTypeProvider.TryGetDefinedType(reference, flags))
+                .Select(type => type.ResourceTypeProvider.TryGetDefinedType(resourceTypeName, flags))
                 .WhereNotNull();
 
             if (definedTypes.FirstOrDefault() is {} definedType)
@@ -105,18 +109,16 @@ namespace Bicep.Core.Semantics.Namespaces
             }
 
             var generatedTypes = namespaceTypes.Values
-                .Select(type => type.ResourceTypeProvider.TryGenerateDefaultType(reference, flags))
+                .Select(type => type.ResourceTypeProvider.TryGenerateDefaultType(resourceTypeName, flags))
                 .WhereNotNull();
 
-            // Here we are assuming that one of the namespaces will always return at least one result with TryGenerateDefaultType.
-            // This is a fair assumption at present, because the "az" namespace is always imported.
-            return generatedTypes.First();
+            return generatedTypes.FirstOrDefault();
         }
 
-        public bool HasResourceType(ResourceTypeReference reference)
+        public bool HasResourceType(string reference)
             => namespaceTypes.Values.Any(type => type.ResourceTypeProvider.HasDefinedType(reference));
 
-        public IEnumerable<ResourceTypeReference> GetAvailableResourceTypes()
+        public IEnumerable<string> GetAvailableResourceTypes()
         {
             // Here we are not handling any deduplication between namespaces. This is OK for now, because there
             // are only two supported namespaces ("az" & "sys"), both singletons. "sys" does not contain any resource types.

@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Bicep.Core.Resources;
@@ -9,16 +8,16 @@ namespace Bicep.Core.TypeSystem
 {
     public class EmptyResourceTypeProvider : IResourceTypeProvider
     {
-        public IEnumerable<ResourceTypeReference> GetAvailableTypes()
-            => Enumerable.Empty<ResourceTypeReference>();
+        public IEnumerable<string> GetAvailableTypes()
+            => Enumerable.Empty<string>();
 
-        public ResourceType? TryGetDefinedType(ResourceTypeReference reference, ResourceTypeGenerationFlags flags)
+        public ResourceType? TryGetDefinedType(string reference, ResourceTypeGenerationFlags flags)
             => null;
 
-        public ResourceType? TryGenerateDefaultType(ResourceTypeReference reference, ResourceTypeGenerationFlags flags)
+        public ResourceType? TryGenerateDefaultType(string reference, ResourceTypeGenerationFlags flags)
             => null;
 
-        public bool HasDefinedType(ResourceTypeReference typeReference)
+        public bool HasDefinedType(string typeReference)
             => false;
     }
 }

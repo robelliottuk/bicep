@@ -122,7 +122,7 @@ namespace Bicep.Core.TypeSystem
 
         private DeclaredTypeAssignment GetResourceType(ResourceDeclarationSyntax syntax)
         {
-            var declaredResourceType = GetDeclaredResourceType(this.binder, syntax);
+            var declaredResourceType = GetDeclaredResourceType(syntax);
 
             // if the value is a loop (not a condition or object), the type is an array of the declared resource type
             return new DeclaredTypeAssignment(
@@ -645,7 +645,7 @@ namespace Bicep.Core.TypeSystem
         /// Returns the same value for single resource or resource loops declarations.
         /// </summary>
         /// <param name="resourceTypeProvider">resource type provider</param>
-        private static TypeSymbol GetDeclaredResourceType(IBinder binder, ResourceDeclarationSyntax resource)
+        private TypeSymbol GetDeclaredResourceType(ResourceDeclarationSyntax resource)
         {
             var stringSyntax = resource.TypeString;
 
@@ -662,11 +662,81 @@ namespace Bicep.Core.TypeSystem
                 return ErrorType.Create(DiagnosticBuilder.ForPosition(resource.Type).InvalidResourceType());
             }
 
+            // TODO validate stringContent against some base regex here.
+
+            /* TODO use type flags
+            var isSyntacticallyNested = false;
+            TypeSymbol? parentResourceType = null;
+
+            var parentResource = binder.GetAllAncestors<ResourceDeclarationSyntax>(resource).LastOrDefault();
+            if (parentResource is not null)
+            {
+                isSyntacticallyNested = true;
+                parentResourceType = GetDeclaredType(parentResource);
+            }
+            else if (binder.GetSymbolInfo(resource) is ResourceSymbol resourceSymbol &&
+                binder.TryGetCycle(resourceSymbol) is null &&
+                resourceSymbol.SafeGetBodyPropertyValue(LanguageConstants.ResourceParentPropertyName) is {} referenceParentSyntax)
+            {
+                parentResourceType = GetDeclaredType(referenceParentSyntax);
+            }
+            */
+
+            var colonIndex = stringContent.IndexOf(':');
+            if (colonIndex > 0)
+            {
+                var scheme = stringContent.Substring(0, colonIndex);
+                var resourceTypeName = stringContent.Substring(colonIndex + 1);
+
+                if (binder.NamespaceResolver.TryGetNamespace(scheme) is not {} namespaceType)
+                {
+                    return ErrorType.Create(DiagnosticBuilder.ForPosition(resource.Type).UnknownResourceReferenceScheme(scheme, binder.NamespaceResolver.GetNamespaceNames()));
+                }
+
+                // TODO use the type generation flags
+                if (namespaceType.ResourceTypeProvider.TryGetDefinedType(resourceTypeName, ResourceTypeGenerationFlags.None) is {} definedResource)
+                {
+                    return definedResource;
+                }
+
+                if (namespaceType.ResourceTypeProvider.TryGenerateDefaultType(resourceTypeName, ResourceTypeGenerationFlags.None) is {} defaultResource)
+                {
+                    return defaultResource;
+                }
+
+                return ErrorType.Create(DiagnosticBuilder.ForPosition(resource.Type).FailedToFindResourceTypeInNamespace(namespaceType.ProviderName, resourceTypeName));
+            }
+
+            if (binder.NamespaceResolver.TryGetResourceType(stringContent, ResourceTypeGenerationFlags.None) is {} resourceType)
+            {
+                return resourceType;
+            }
+
+            return ErrorType.Create(DiagnosticBuilder.ForPosition(resource.Type).FailedToFindResourceType(stringContent));
+/*
+            bool isTopLevelResourceDeclaration = nestedParents.Length == 0;
+
+            var flags = ResourceTypeGenerationFlags.None;
+            if (resource.IsExistingResource())
+            {
+                flags |= ResourceTypeGenerationFlags.ExistingResource;
+            }
+
+            if (!isTopLevelResourceDeclaration)
+            {
+                flags |= ResourceTypeGenerationFlags.NestedResource;
+            }
+
+            if (typeReference.IsRootType || hasParentDeclaration)
+            {
+                flags |= ResourceTypeGenerationFlags.PermitLiteralNameProperty;
+            }
+
+            if (stringContent.IndexOf(';'))
+
             // Before we parse the type name we need to determine if it's a top level resource or not.
             ResourceTypeReference? typeReference;
             var hasParentDeclaration = false;
-            var nestedParents = binder.GetAllAncestors<ResourceDeclarationSyntax>(resource);
-            bool isTopLevelResourceDeclaration = nestedParents.Length == 0;
             if (isTopLevelResourceDeclaration)
             {
                 // This is a top level resource - the type is a fully-qualified type.
@@ -778,6 +848,7 @@ namespace Bicep.Core.TypeSystem
             }
 
             return binder.NamespaceResolver.GetResourceType(typeReference, flags);
+*/
         }
     }
 }

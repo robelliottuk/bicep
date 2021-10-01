@@ -1232,6 +1232,21 @@ namespace Bicep.Core.Diagnostics
                 TextSpan,
                 "BCP207",
                 $"Namespace \"{identifier}\" is imported multiple times. Remove the duplicates.");
+
+            public ErrorDiagnostic UnknownResourceReferenceScheme(string identifier, IEnumerable<string> allowedSchemes) => new(
+                TextSpan,
+                "BCP208",
+                $"The specified namespace \"{identifier}\" is not recognized. Specify a resource reference using one of the following namespaces: {ToQuotedString(allowedSchemes)}.");
+
+            public ErrorDiagnostic FailedToFindResourceTypeInNamespace(string @namespace, string resourceType) => new(
+                TextSpan,
+                "BCP209",
+                $"Failed to find resource of type \"{resourceType}\" in namespace \"{@namespace}\".");
+
+            public ErrorDiagnostic FailedToFindResourceType(string resourceType) => new(
+                TextSpan,
+                "BCP210",
+                $"Failed to find resource of type \"{resourceType}\".");
         }
 
         public static DiagnosticBuilderInternal ForPosition(TextSpan span)
