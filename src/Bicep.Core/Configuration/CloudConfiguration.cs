@@ -16,12 +16,20 @@ namespace Bicep.Core.Configuration
 
     public class CloudConfiguration
     {
-        private CloudConfiguration(string currentProfile, ImmutableDictionary<string, CloudProfile> profiles, string resourceName)
+        // this is a workaround for unusual array merging behavior in the underlying config library
+        private static readonly ImmutableArray<CredentialType> DefaultCredentialPrecedence = new[]{
+            CredentialType.Anonymous,
+            CredentialType.AzureCLI,
+            CredentialType.AzurePowerShell
+        }.ToImmutableArray();
+
+        private CloudConfiguration(string currentProfile, ImmutableDictionary<string, CloudProfile> profiles, string resourceName, ImmutableArray<CredentialType> credentialPrecedence)
         {
             this.CurrentProfileName = currentProfile;
             this.Profiles = profiles;
             this.ResourceName = resourceName;
             this.CurrentProfile = profiles.GetValueOrDefault(currentProfile);
+            this.CredentialPrecedence = credentialPrecedence.ToImmutableArray();
         }
 
         public static CloudConfiguration Bind(IConfiguration rawConfiguration, string resourceName)
@@ -31,7 +39,9 @@ namespace Bicep.Core.Configuration
             var profiles = new Dictionary<string, CloudProfile>();
             rawConfiguration.GetSection("profiles").Bind(profiles);
 
-            return new(currentProfile, profiles.ToImmutableDictionary(), resourceName);
+            var credentialPrecedence = rawConfiguration.GetSection("credentialPrecedence")?.Get<CredentialType[]>()?.ToImmutableArray() ?? DefaultCredentialPrecedence;
+
+            return new(currentProfile, profiles.ToImmutableDictionary(), resourceName, credentialPrecedence);
         }
 
         public CloudProfile? CurrentProfile { get; }
@@ -41,6 +51,8 @@ namespace Bicep.Core.Configuration
         public ImmutableDictionary<string, CloudProfile> Profiles { get; }
 
         public string ResourceName { get; }
+
+        public ImmutableArray<CredentialType> CredentialPrecedence { get; }
 
         public string? TryGetCurrentResourceManagerEndpoint(out ErrorBuilderDelegate? errorBuilder)
         {
