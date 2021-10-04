@@ -98,7 +98,7 @@ module optionalWithImplicitDependency './child/optionalParams.bicep'= {
   name: 'optionalWithImplicitDependency'
   params: {
     optionalString: concat(resWithDependencies.id, optionalWithAllParamsAndManualDependency.name)
-//@[20:97) [prefer-interpolation (Warning)] Use string interpolation instead of the concat function. (CodeDescription: bicep core(https://aka.ms/bicep/linter/prefer-interpolation)) |concat(resWithDependencies.id, optionalWithAllParamsAndManualDependency.name)|
+//@[20:97) [prefer-interpolation (Warning)] Use string interpolation instead of the concat function. (CodeDescription: bicep core(https://aka.ms/bicep/linter/$prefer-interpolation)) |concat(resWithDependencies.id, optionalWithAllParamsAndManualDependency.name)|
     optionalInt: 42
     optionalObj: { }
     optionalArray: [ ]
@@ -109,7 +109,7 @@ module moduleWithCalculatedName './child/optionalParams.bicep'= {
   name: '${optionalWithAllParamsAndManualDependency.name}${deployTimeSuffix}'
   params: {
     optionalString: concat(resWithDependencies.id, optionalWithAllParamsAndManualDependency.name)
-//@[20:97) [prefer-interpolation (Warning)] Use string interpolation instead of the concat function. (CodeDescription: bicep core(https://aka.ms/bicep/linter/prefer-interpolation)) |concat(resWithDependencies.id, optionalWithAllParamsAndManualDependency.name)|
+//@[20:97) [prefer-interpolation (Warning)] Use string interpolation instead of the concat function. (CodeDescription: bicep core(https://aka.ms/bicep/linter/$prefer-interpolation)) |concat(resWithDependencies.id, optionalWithAllParamsAndManualDependency.name)|
     optionalInt: 42
     optionalObj: { }
     optionalArray: [ ]
@@ -168,7 +168,7 @@ module storageResourcesWithIndex 'modulea.bicep' = [for (module, i) in myModules
     objParam: module
     stringParamB: module.location
     stringParamA: concat('a', i)
-//@[18:32) [prefer-interpolation (Warning)] Use string interpolation instead of the concat function. (CodeDescription: bicep core(https://aka.ms/bicep/linter/prefer-interpolation)) |concat('a', i)|
+//@[18:32) [prefer-interpolation (Warning)] Use string interpolation instead of the concat function. (CodeDescription: bicep core(https://aka.ms/bicep/linter/$prefer-interpolation)) |concat('a', i)|
   }
 }]
 
@@ -177,7 +177,7 @@ module nestedModuleLoop 'modulea.bicep' = [for module in myModules: {
   name: module.name
   params: {
     arrayParam: [for i in range(0,3): concat('test-', i, '-', module.name)]
-//@[38:74) [prefer-interpolation (Warning)] Use string interpolation instead of the concat function. (CodeDescription: bicep core(https://aka.ms/bicep/linter/prefer-interpolation)) |concat('test-', i, '-', module.name)|
+//@[38:74) [prefer-interpolation (Warning)] Use string interpolation instead of the concat function. (CodeDescription: bicep core(https://aka.ms/bicep/linter/$prefer-interpolation)) |concat('test-', i, '-', module.name)|
     objParam: module
     stringParamB: module.location
   }
@@ -196,7 +196,7 @@ module duplicateIdentifiersWithinLoop 'modulea.bicep' = [for x in emptyArray:{
 
 // duplicate identifiers across scopes are allowed (inner hides the outer)
 var duplicateAcrossScopes = 'hello'
-//@[4:25) [no-unused-vars (Warning)] Variable "duplicateAcrossScopes" is declared but never used. (CodeDescription: bicep core(https://aka.ms/bicep/linter/no-unused-vars)) |duplicateAcrossScopes|
+//@[4:25) [no-unused-vars (Warning)] Variable "duplicateAcrossScopes" is declared but never used. (CodeDescription: bicep core(https://aka.ms/bicep/linter/$no-unused-vars)) |duplicateAcrossScopes|
 module duplicateInGlobalAndOneLoop 'modulea.bicep' = [for duplicateAcrossScopes in []: {
   name: 'hello-${duplicateAcrossScopes}'
   params: {
@@ -208,9 +208,9 @@ module duplicateInGlobalAndOneLoop 'modulea.bicep' = [for duplicateAcrossScopes 
 }]
 
 var someDuplicate = true
-//@[4:17) [no-unused-vars (Warning)] Variable "someDuplicate" is declared but never used. (CodeDescription: bicep core(https://aka.ms/bicep/linter/no-unused-vars)) |someDuplicate|
+//@[4:17) [no-unused-vars (Warning)] Variable "someDuplicate" is declared but never used. (CodeDescription: bicep core(https://aka.ms/bicep/linter/$no-unused-vars)) |someDuplicate|
 var otherDuplicate = false
-//@[4:18) [no-unused-vars (Warning)] Variable "otherDuplicate" is declared but never used. (CodeDescription: bicep core(https://aka.ms/bicep/linter/no-unused-vars)) |otherDuplicate|
+//@[4:18) [no-unused-vars (Warning)] Variable "otherDuplicate" is declared but never used. (CodeDescription: bicep core(https://aka.ms/bicep/linter/$no-unused-vars)) |otherDuplicate|
 module duplicatesEverywhere 'modulea.bicep' = [for someDuplicate in []: {
   name: 'hello-${someDuplicate}'
   params: {
